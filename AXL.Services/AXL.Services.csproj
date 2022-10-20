@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net7.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Autofac" Version="6.3.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\AXL.Dto\AXL.Dto.csproj" />
+    <ProjectReference Include="..\AXL.Entitys\AXL.Entitys.csproj" />
+    <ProjectReference Include="..\AXL.Repositorys.Contract\AXL.Repositorys.Contract.csproj" />
+    <ProjectReference Include="..\AXL.Services.Contract\AXL.Services.Contract.csproj" />
+  </ItemGroup>
+
+</Project>

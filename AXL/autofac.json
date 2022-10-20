@@ -1,0 +1,11 @@
+{
+  "modules": [
+
+    {
+      "type": "AXL.Repositorys.Base.RepositoryRegisterModule,AXL.Repositorys"
+    },
+    {
+      "type": "AXL.Services.Base.ServiceRegisterModule,AXL.Services"
+    }
+  ]
+}
