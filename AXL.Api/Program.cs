@@ -19,11 +19,8 @@ using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Host.ConfigureAppConfiguration(option =>
-    {
-        option.AddJsonFile("autofac.json", true);//添加autofac注入的json文件
-    })
-    .UseServiceProviderFactory(new AutofacServiceProviderFactory())//使用autofac代替MS容器
+builder.Configuration.AddJsonFile("autofac.json", true);
+ builder.Host.UseServiceProviderFactory(new AutofacServiceProviderFactory())//使用autofac代替MS容器
     .ConfigureContainer<ContainerBuilder>(container =>
     {
         var connection = new SqlConnection(builder.Configuration.GetConnectionString("Default"));
@@ -105,9 +102,9 @@ builder.Services.AddSwaggerGen(c => {
     });
     var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.XML";
     var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
-    c.IncludeXmlComments(xmlPath); // true : 显示控制器层注释
+    c.IncludeXmlComments(xmlPath,true); // true : 显示控制器层注释
     c.OrderActionsBy(o => o.RelativePath);
-    c.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, "AXL.Dto.xml"));
+    c.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, "AXL.Dto.xml"),true);
 
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme()
     {
@@ -147,6 +144,7 @@ app.UseHttpsRedirection();
 
 app.UseAuthorization();
 
+app.UseCors("Any");
 app.MapControllers();
 
 app.Run();

@@ -27,7 +27,7 @@ namespace AXL.Api.Controllers
             configuration = Configuration;
         }
         [HttpGet]
-        public Task<List<UserDto>> GetUsers() {
+        public Task<ResponseDto> GetUsers() {
             return userService.GetUsers();
         }
         [AllowAnonymous]
@@ -84,6 +84,11 @@ namespace AXL.Api.Controllers
             {
                 throw new BusinessException(400, "用户信息错误");
             }
+        }
+        [AllowAnonymous]
+        [HttpPost]
+        public string Get(List<UserDto> userDtos) {
+            return "Ok";
         }
     }
 }

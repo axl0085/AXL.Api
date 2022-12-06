@@ -30,10 +30,27 @@ namespace AXL.Services
             mapper = Mapeer;
             Oracledatabase = oracledatabase;
         }
-        public async Task<List<UserDto>> GetUsers() 
+        public async Task<ResponseDto> GetUsers() 
         {
-           var res = await _userRepository.GetList<UserEntity>();
-            return  mapper.Map<List<UserDto>>(res);
+            try
+            {
+                List<ISort> sorts = new()
+                {
+                    new Sort { PropertyName = "ID", Ascending = true }
+                };
+                _userRepository.Get();
+                var res = await _userRepository.GetPage<UserEntity>(null, sorts, 1, 15, null);
+                var count = await _userRepository.Count<UserEntity>(null);
+                ResponseDto responseDto = new(200, mapper.Map<List<UserDto>>(res),count);
+                return responseDto;
+            }
+            catch (Exception)
+            {
+                ResponseDto responseDto = new(400,null,0,"查询出错");
+                return responseDto;
+            }
+            
+         
         }
         public async Task<int> Login(string userName, string passWord)
         {

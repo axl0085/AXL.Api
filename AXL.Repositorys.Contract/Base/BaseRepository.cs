@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Dapper;
 using DapperExtensions;
 using DapperExtensions.Mapper;
 using DapperExtensions.Predicate;
@@ -22,14 +23,18 @@ namespace AXL.Repositorys.Contract.Base
             mapper = Mapeer;
         }
 
-        public async Task<int> Count<T>(object predicate, int? commandTimeout = null) where T : class
+        public async Task<int> Count<F>(object predicate, int? commandTimeout = null) where F : class
         {
-            return await database.Count<T>(predicate);
+            return await database.Count<F>(predicate);
         }
 
-        public async Task<IEnumerable<T>> GetList<T>(object predicate = null, IList<ISort> sort = null, int? commandTimeout = null, bool buffered = true) where T : class
+        public async Task<IEnumerable<F>> GetList<F>(object? predicate = null, IList<ISort>? sort = null, int? commandTimeout = null, bool buffered = true) where F : class
         {
-          return  await database.GetList<T>(predicate, sort, commandTimeout, buffered);
+          return  await database.GetList<F>(predicate, sort, commandTimeout, buffered);
+        }
+        public async  Task<IEnumerable<F>> GetPage<F>(object predicate, IList<ISort> sort, int page, int resultsPerPage, IDbTransaction transaction ,int? commandTimeout = null, bool buffered = true) where F : class
+        {
+            return await database.GetPage<F>(predicate, sort, page, resultsPerPage, transaction, resultsPerPage);
         }
     }
 

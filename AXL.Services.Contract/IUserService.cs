@@ -13,7 +13,7 @@ namespace AXL.Services.Contract
     /// </summary>
     public interface IUserService : IService<UserDto>
     {
-        Task<List<UserDto>> GetUsers();
+        Task<ResponseDto> GetUsers();
         Task<int> Login(string userName, string passWord);
     }
 }
