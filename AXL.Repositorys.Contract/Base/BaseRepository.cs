@@ -15,9 +15,9 @@ namespace AXL.Repositorys.Contract.Base
 {
     public class BaseRepository<T>:IRepository<T> where T:class,new()
     {
-        private readonly IAsyncDatabase database;
+        private readonly Dictionary<string, IAsyncDatabase> database;
         private readonly IMapper mapper;
-        public BaseRepository(IAsyncDatabase Database, IMapper Mapeer)
+        public BaseRepository(Dictionary<string, IAsyncDatabase> Database, IMapper Mapeer)
         {
             database = Database;
             mapper = Mapeer;
@@ -25,16 +25,16 @@ namespace AXL.Repositorys.Contract.Base
 
         public async Task<int> Count<F>(object predicate, int? commandTimeout = null) where F : class
         {
-            return await database.Count<F>(predicate);
+            return await database["database"].Count<F>(predicate);
         }
 
         public async Task<IEnumerable<F>> GetList<F>(object? predicate = null, IList<ISort>? sort = null, int? commandTimeout = null, bool buffered = true) where F : class
         {
-          return  await database.GetList<F>(predicate, sort, commandTimeout, buffered);
+            return await database["database"].GetList<F>(predicate, sort, commandTimeout, buffered);
         }
-        public async  Task<IEnumerable<F>> GetPage<F>(object predicate, IList<ISort> sort, int page, int resultsPerPage, IDbTransaction transaction ,int? commandTimeout = null, bool buffered = true) where F : class
+        public async Task<IEnumerable<F>> GetPage<F>(object predicate, IList<ISort> sort, int page, int resultsPerPage, IDbTransaction transaction, int? commandTimeout = null, bool buffered = true) where F : class
         {
-            return await database.GetPage<F>(predicate, sort, page, resultsPerPage, transaction, resultsPerPage);
+            return await database["database"].GetPage<F>(predicate, sort, page, resultsPerPage, transaction, resultsPerPage);
         }
     }
 

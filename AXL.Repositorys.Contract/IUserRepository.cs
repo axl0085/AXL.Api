@@ -10,5 +10,6 @@ namespace AXL.Repositorys.Contract
     public interface IUserRepository:IRepository<UserDto>
     {
         void Get();
+        Task<List<UserDto>> PgGetUsers();
     }
 }

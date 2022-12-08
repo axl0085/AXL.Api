@@ -22,13 +22,15 @@ namespace AXL.Services
         private readonly IAsyncDatabase database;
         private readonly IMapper mapper;
         private readonly IUserRepository _userRepository;
-        private readonly IAsyncDatabase Oracledatabase;
-        public UserService(IUserRepository userRepository, IAsyncDatabase Database, IMapper Mapeer, [KeyFilter("SqlDb")] IAsyncDatabase oracledatabase)
+        private readonly IAsyncDatabase Sqldatabase;
+        private readonly IAsyncDatabase Pgdatabase;
+        public UserService(IUserRepository userRepository,  IAsyncDatabase Database, IMapper Mapeer, [KeyFilter("SqlDb")] IAsyncDatabase sqldatabase, [KeyFilter("PgDb")] IAsyncDatabase pgdatabase)
         {
             _userRepository = userRepository;
             database = Database;
             mapper = Mapeer;
-            Oracledatabase = oracledatabase;
+            Sqldatabase = sqldatabase;
+            Pgdatabase = pgdatabase;
         }
         public async Task<ResponseDto> GetUsers() 
         {
@@ -38,7 +40,6 @@ namespace AXL.Services
                 {
                     new Sort { PropertyName = "ID", Ascending = true }
                 };
-                _userRepository.Get();
                 var res = await _userRepository.GetPage<UserEntity>(null, sorts, 1, 15, null);
                 var count = await _userRepository.Count<UserEntity>(null);
                 ResponseDto responseDto = new(200, mapper.Map<List<UserDto>>(res),count);
@@ -49,8 +50,21 @@ namespace AXL.Services
                 ResponseDto responseDto = new(400,null,0,"查询出错");
                 return responseDto;
             }
-            
-         
+        }
+
+        public async Task<ResponseDto> PgGetUsers()
+        {
+            try
+            {
+                var res = await _userRepository.PgGetUsers();
+                ResponseDto responseDto = new(200, mapper.Map<List<UserDto>>(res), 1);
+                return responseDto;
+            }
+            catch (Exception)
+            {
+                ResponseDto responseDto = new(400, null, 0, "查询出错");
+                return responseDto;
+            }
         }
         public async Task<int> Login(string userName, string passWord)
         {

@@ -1,4 +1,5 @@
 ﻿using Autofac;
+using Autofac.Features.AttributeFilters;
 using AXL.Repositorys.Contract.Base;
 using System;
 using System.Collections.Generic;
@@ -15,7 +16,8 @@ namespace AXL.Repositorys.Base
             builder.RegisterAssemblyTypes(ThisAssembly)
                   .Where(t => t.IsClosedTypeOf(typeof(IRepository<>)))
                  .AsImplementedInterfaces()
-                 .InstancePerLifetimeScope().PropertiesAutowired(PropertyWiringOptions.AllowCircularDependencies);
+                 .InstancePerLifetimeScope()
+                 .WithAttributeFiltering();
         }
     }
 }

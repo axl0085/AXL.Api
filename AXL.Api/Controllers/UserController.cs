@@ -30,6 +30,11 @@ namespace AXL.Api.Controllers
         public Task<ResponseDto> GetUsers() {
             return userService.GetUsers();
         }
+        [HttpGet]
+        [AllowAnonymous]
+        public Task<ResponseDto> PgGetUsers() {
+            return userService.PgGetUsers();
+        }
         [AllowAnonymous]
         [HttpGet]
         public string GetCilentIp() => httpContextAccessor!.HttpContext!.Connection!.RemoteIpAddress!.ToString();

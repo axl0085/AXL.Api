@@ -14,6 +14,7 @@ namespace AXL.Services.Contract
     public interface IUserService : IService<UserDto>
     {
         Task<ResponseDto> GetUsers();
+        Task<ResponseDto> PgGetUsers();
         Task<int> Login(string userName, string passWord);
     }
 }

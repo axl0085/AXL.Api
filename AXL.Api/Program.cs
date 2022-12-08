@@ -16,6 +16,10 @@ using System.Text;
 using Oracle.ManagedDataAccess.Client;
 using Npgsql;
 using Microsoft.OpenApi.Models;
+using Microsoft.AspNetCore.Mvc.ModelBinding.Metadata;
+using Microsoft.Extensions.Options;
+using Microsoft.AspNetCore.RateLimiting;
+using System.Threading.RateLimiting;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -41,11 +45,11 @@ builder.Configuration.AddJsonFile("autofac.json", true);
         //       .Keyed<IAsyncDatabase>("OracleDb")
         //       .InstancePerLifetimeScope();
 
-        //var Pgconnection = new NpgsqlConnection(builder.Configuration.GetConnectionString("Pg"));
-        //var PgsqlGenerator = new SqlGeneratorImpl(new DapperExtensionsConfiguration(typeof(AutoClassMapper<>), new List<Assembly>(), new PostgreSqlDialect()));
-        //container.Register(x => new AsyncDatabase(Pgconnection, PgsqlGenerator))
-        //       .Keyed<IAsyncDatabase>("PgDb")
-        //       .InstancePerLifetimeScope();
+        var Pgconnection = new NpgsqlConnection(builder.Configuration.GetConnectionString("Pg"));
+        var PgsqlGenerator = new SqlGeneratorImpl(new DapperExtensionsConfiguration(typeof(AutoClassMapper<>), new List<Assembly>(), new PostgreSqlDialect()));
+        container.Register(x => new AsyncDatabase(Pgconnection, PgsqlGenerator))
+               .Keyed<IAsyncDatabase>("PgDb")
+               .InstancePerLifetimeScope();
         container.RegisterModule(new ConfigurationModule(builder.Configuration));//注入模块
     }).ConfigureLogging((option, logg) => { //使用Log4net 默认路径为项目的log4net.config
         logg.AddLog4Net();
@@ -128,6 +132,14 @@ builder.Services.AddSwaggerGen(c => {
     });
 });
 
+builder.Services.AddRateLimiter(_ => _
+    .AddFixedWindowLimiter(policyName: "fixed", options =>
+    {
+        options.PermitLimit = 2;
+        options.Window = TimeSpan.FromSeconds(10);
+        options.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
+        options.QueueLimit = 2;
+    }));
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -138,6 +150,8 @@ if (app.Environment.IsDevelopment())
         c.SwaggerEndpoint("/swagger/v1/swagger.json", "AXL.API v1");
     });
 }
+app.UseRateLimiter();
+
 app.UseAuthentication();//使用鉴权
 
 app.UseHttpsRedirection();
@@ -145,6 +159,8 @@ app.UseHttpsRedirection();
 app.UseAuthorization();
 
 app.UseCors("Any");
-app.MapControllers();
 
+app.MapControllers();
+static string GetTicks() => (DateTime.Now.Ticks & 0x11111).ToString("00000");
+//app.MapGet("/User/GetUsers", () => Results.Ok($"Hello {GetTicks()}")).RequireRateLimiting("fixed");
 app.Run();

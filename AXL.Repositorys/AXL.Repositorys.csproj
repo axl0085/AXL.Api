@@ -8,8 +8,6 @@
 
   <ItemGroup>
     <PackageReference Include="Autofac" Version="6.3.0" />
-    <PackageReference Include="AutoMapper" Version="11.0.1" />
-    <PackageReference Include="DapperExtensions" Version="1.7.0" />
   </ItemGroup>
 
   <ItemGroup>
