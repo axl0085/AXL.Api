@@ -4,20 +4,23 @@ using Microsoft.AspNetCore.Mvc.Filters;
 
 namespace AXL.Api.Utiy
 {
-    public class CustomExceptionFilterAttribute:ExceptionFilterAttribute
+    public class CustomExceptionFilterAttribute : ExceptionFilterAttribute
     {
         private readonly ILogger<CustomExceptionFilterAttribute> logger;
+
         public CustomExceptionFilterAttribute(ILogger<CustomExceptionFilterAttribute> Logger)
         {
             logger = Logger;
         }
+
         public override void OnException(ExceptionContext context)
         {
-            Exception  exception = context.Exception;
+            Exception exception = context.Exception;
             JsonResult result;
-            if (exception  is BusinessException)
+            if (exception is BusinessException || exception is ArgumentException)
             {
-                result = new JsonResult(exception.Message) {
+                result = new JsonResult(exception.Message)
+                {
                     StatusCode = 400
                 };
             }
@@ -27,7 +30,7 @@ namespace AXL.Api.Utiy
                 {
                     StatusCode = 500
                 };
-                logger.LogError(exception,"服务器处理出错");
+                logger.LogError(exception, "服务器处理出错");
             }
             context.Result = result;
         }

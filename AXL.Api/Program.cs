@@ -20,46 +20,48 @@ using Microsoft.AspNetCore.Mvc.ModelBinding.Metadata;
 using Microsoft.Extensions.Options;
 using Microsoft.AspNetCore.RateLimiting;
 using System.Threading.RateLimiting;
+using System;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Configuration.AddJsonFile("autofac.json", true);
- builder.Host.UseServiceProviderFactory(new AutofacServiceProviderFactory())//使用autofac代替MS容器
-    .ConfigureContainer<ContainerBuilder>(container =>
-    {
-        var connection = new SqlConnection(builder.Configuration.GetConnectionString("Default"));
-        var sqlGenerator = new SqlGeneratorImpl(new DapperExtensionsConfiguration(typeof(AutoClassMapper<>), new List<Assembly>(), new SqlServerDialect()));
-        container.Register(p => new AsyncDatabase(connection, sqlGenerator)).AsImplementedInterfaces().InstancePerLifetimeScope();
+builder.Host.UseServiceProviderFactory(new AutofacServiceProviderFactory())//使用autofac代替MS容器
+   .ConfigureContainer<ContainerBuilder>(container =>
+   {
+       var connection = new SqlConnection(builder.Configuration.GetConnectionString("Default"));
+       var sqlGenerator = new SqlGeneratorImpl(new DapperExtensionsConfiguration(typeof(AutoClassMapper<>), new List<Assembly>(), new SqlServerDialect()));
+       container.Register(p => new AsyncDatabase(connection, sqlGenerator)).AsImplementedInterfaces().InstancePerLifetimeScope();
+       global::System.Console.WriteLine($"Default:{connection.ConnectionString}");
+       //var SqlConnection = new SqlConnection(builder.Configuration.GetConnectionString("SqlServer"));
+       //var SqlGenerator = new SqlGeneratorImpl(new DapperExtensionsConfiguration(typeof(AutoClassMapper<>), new List<Assembly>(), new SqlServerDialect()));
+       //container.Register(x => new AsyncDatabase(SqlConnection, SqlGenerator))
+       //       .Keyed<IAsyncDatabase>("SqlDb")
+       //       .InstancePerLifetimeScope();
 
+       //var Oracleconnection = new OracleConnection(builder.Configuration.GetConnectionString("Oracle"));
+       //var OraclesqlGenerator = new SqlGeneratorImpl(new DapperExtensionsConfiguration(typeof(AutoClassMapper<>), new List<Assembly>(), new OracleDialect()));
+       //container.Register(x => new AsyncDatabase(Oracleconnection, OraclesqlGenerator))
+       //       .Keyed<IAsyncDatabase>("OracleDb")
+       //       .InstancePerLifetimeScope();
 
-        var SqlConnection = new SqlConnection(builder.Configuration.GetConnectionString("SqlServer"));
-        var SqlGenerator = new SqlGeneratorImpl(new DapperExtensionsConfiguration(typeof(AutoClassMapper<>), new List<Assembly>(), new SqlServerDialect()));
-        container.Register(x => new AsyncDatabase(SqlConnection, SqlGenerator))
-               .Keyed<IAsyncDatabase>("SqlDb")
-               .InstancePerLifetimeScope();
-
-
-        //var Oracleconnection = new OracleConnection(builder.Configuration.GetConnectionString("Oracle"));
-        //var OraclesqlGenerator = new SqlGeneratorImpl(new DapperExtensionsConfiguration(typeof(AutoClassMapper<>), new List<Assembly>(), new OracleDialect()));
-        //container.Register(x => new AsyncDatabase(Oracleconnection, OraclesqlGenerator))
-        //       .Keyed<IAsyncDatabase>("OracleDb")
-        //       .InstancePerLifetimeScope();
-
-        var Pgconnection = new NpgsqlConnection(builder.Configuration.GetConnectionString("Pg"));
-        var PgsqlGenerator = new SqlGeneratorImpl(new DapperExtensionsConfiguration(typeof(AutoClassMapper<>), new List<Assembly>(), new PostgreSqlDialect()));
-        container.Register(x => new AsyncDatabase(Pgconnection, PgsqlGenerator))
-               .Keyed<IAsyncDatabase>("PgDb")
-               .InstancePerLifetimeScope();
-        container.RegisterModule(new ConfigurationModule(builder.Configuration));//注入模块
-    }).ConfigureLogging((option, logg) => { //使用Log4net 默认路径为项目的log4net.config
-        logg.AddLog4Net();
-    });
+       //var Pgconnection = new NpgsqlConnection(builder.Configuration.GetConnectionString("Pg"));
+       //var PgsqlGenerator = new SqlGeneratorImpl(new DapperExtensionsConfiguration(typeof(AutoClassMapper<>), new List<Assembly>(), new PostgreSqlDialect()));
+       //container.Register(x => new AsyncDatabase(Pgconnection, PgsqlGenerator))
+       //       .Keyed<IAsyncDatabase>("PgDb")
+       //       .InstancePerLifetimeScope();
+       //global::System.Console.WriteLine($"PgDb:{Pgconnection.ConnectionString}");
+       container.RegisterModule(new ConfigurationModule(builder.Configuration));//注入模块
+   }).ConfigureLogging((option, logg) =>
+   { //使用Log4net 默认路径为项目的log4net.config
+       logg.AddLog4Net();
+   });
 // Add services to the container.
 builder.Services.AddAutoMapper(typeof(TransForMationProfile));//添加实体类与DTO的映射关系
 builder.Services.AddMvc();
 builder.Services.AddCors(cors =>//添加跨域
 {
-    cors.AddPolicy("Any", policy => {
+    cors.AddPolicy("Any", policy =>
+    {
         policy.SetIsOriginAllowed(_ => true)
             .AllowAnyMethod()
             .AllowAnyHeader()
@@ -67,16 +69,20 @@ builder.Services.AddCors(cors =>//添加跨域
     });
 });
 builder.Services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();//添加http上下文到全局
-builder.Services.AddControllersWithViews(option => {//全局异常处理
+builder.Services.AddMemoryCache();
+builder.Services.AddControllersWithViews(option =>
+{//全局异常处理
     option.Filters.Add(typeof(CustomExceptionFilterAttribute));
-}).AddJsonOptions(option => {//全局json序列化
+}).AddJsonOptions(option =>
+{//全局json序列化
     option.JsonSerializerOptions.Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping;
     option.JsonSerializerOptions.Converters.Add(new DateTimeConverter());
     option.JsonSerializerOptions.Converters.Add(new DateTimeNullableConverter());
 });
-builder.Services.AddAuthentication("Bearer").AddJwtBearer(optins => {
-    //optins.RequireHttpsMetadata = false;
-    //optins.SaveToken = true;
+builder.Services.AddAuthentication("Bearer").AddJwtBearer(optins =>
+{
+    optins.RequireHttpsMetadata = false;
+    optins.SaveToken = true;
     optins.TokenValidationParameters = new TokenValidationParameters
     {
         ValidateIssuerSigningKey = true,//是否验证签名,不验证的画可以篡改数据，不安全
@@ -92,7 +98,8 @@ builder.Services.AddAuthentication("Bearer").AddJwtBearer(optins => {
 });
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddControllers();
-builder.Services.AddSwaggerGen(c => {
+builder.Services.AddSwaggerGen(c =>
+{
     c.SwaggerDoc("v1", new OpenApiInfo
     {
         Title = "AXL.API",
@@ -106,9 +113,9 @@ builder.Services.AddSwaggerGen(c => {
     });
     var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.XML";
     var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
-    c.IncludeXmlComments(xmlPath,true); // true : 显示控制器层注释
+    c.IncludeXmlComments(xmlPath, true); // true : 显示控制器层注释
     c.OrderActionsBy(o => o.RelativePath);
-    c.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, "AXL.Dto.xml"),true);
+    c.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, "AXL.Dto.xml"), true);
 
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme()
     {
@@ -141,12 +148,12 @@ builder.Services.AddRateLimiter(_ => _
         options.QueueLimit = 2;
     }));
 var app = builder.Build();
-
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-    app.UseSwaggerUI(c => {
+    app.UseSwaggerUI(c =>
+    {
         c.SwaggerEndpoint("/swagger/v1/swagger.json", "AXL.API v1");
     });
 }
